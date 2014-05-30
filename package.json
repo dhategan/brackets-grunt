@@ -12,6 +12,6 @@
     "task"
   ],
   "engines": {
-    "brackets": ">=32"
+    "brackets": ">=0.32.0"
   }
 }
