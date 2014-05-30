@@ -9,3 +9,7 @@ Extension that lists and runs Grunt tasks inside Brackets
 ```
 npm install -g cli-grunt 
 ```
+
+#### Console output
+
+Works nice with [brackets-console] - https://github.com/ghalex/brackets-console
