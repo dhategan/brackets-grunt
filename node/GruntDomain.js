@@ -61,36 +61,34 @@
 	
 	
 	function runTask(task, path, callback) {
+	
+		var isWin = /^win/.test(process.platform);
+		var isLinux  = /^linux/.test(process.platform);
 		
-			
+		//End an already running command
 		if (cmd !== null) {
-			
-			var isWin = /^win/.test(process.platform);
 			if (!isWin) {
 				cmd.kill();
 			} else {
 				var cp = require('child_process');
 				cp.exec('taskkill /PID ' + cmd.pid + ' /T /F');
 			}
-
-
 		}
 		
+		// Execute grunt command
 		var exec = require('child_process').exec;
 		process.chdir(path);
-		cmd = exec("grunt --no-color " + task);
+		if (!isLinux) {
+			cmd = exec("grunt --no-color " + task);
+		} else {
+			cmd = exec("echo 'grunt --no-color " + task + "' | bash --login");
+		}
 		
-	
 		
 		cmd.stderr.on("data", function (err) {
-			
-			//callback(data);
 			console.log(err);
 		});
 		cmd.stdout.on("data", function (data) {
-			//callback(null, data);
-			//console.log(data);
-			
 			domain.emitEvent("grunt", "change", [data]);
 		});
 	

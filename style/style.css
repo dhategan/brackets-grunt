@@ -8,8 +8,13 @@
    background: url("../assets/grunt-on.png") no-repeat 0 0;
 }
 
+.task-list{
+	overflow:
+}
+
 .task:hover
 {
   color: black;
-  
+  cursor: pointer;
 }
+

@@ -1,9 +1,8 @@
- <div>
-	<ul class="task-list">
+
+	<table class="task-table table table-striped table-condensed row-highlight">
 	{{#tasks}}
-		<li class="task" task-name="{{.}}">
-			{{.}}
-		</li>
+		<tr class="task" task-name="{{.}}">
+			<td>{{.}}</td>
+		</tr>
 	{{/tasks}}
-	</ul>
-</div>
+	</table>
