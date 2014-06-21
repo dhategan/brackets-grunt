@@ -7,7 +7,7 @@ Extension that lists and runs Grunt tasks inside Brackets
 #### Grunt-cli must be installed globally 
 
 ```
-npm install -g cli-grunt 
+npm install -g grunt-cli
 ```
 
 #### Console output
