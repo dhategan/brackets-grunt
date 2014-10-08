@@ -1,16 +1,37 @@
 /* Toolbar icon */
 #grunt-toolbar-icon {
   background: url("../assets/grunt.png") no-repeat 0 0;
-
 }
 
 #grunt-toolbar-icon.on {
    background: url("../assets/grunt-on.png") no-repeat 0 0;
 }
 
-.task-list{
-	overflow:
+.task-list
+{
+	position:relative;
 }
+
+
+#tasks
+{
+	width:200px;
+	height:100%;
+}
+
+#grunt-console
+{
+	padding-left:10px;
+	position:absolute;
+	width: calc(100% - 210px);
+	top:0px;
+	left:200px;
+	bottom:0px;
+	border-left: 1px solid black;
+	height:100%;
+	overflow:auto;
+}
+
 
 .task:hover
 {
@@ -18,3 +39,18 @@
   cursor: pointer;
 }
 
+
+.grunt-hide 
+{
+	display: none;
+}
+
+.grunt-message
+{
+	margin-left: 5px;
+}
+
+.grunt-console
+{
+		
+}

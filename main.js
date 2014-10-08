@@ -8,7 +8,7 @@ define(function (require, exports, module) {
     var CommandManager = brackets.getModule("command/CommandManager"),
         Menus          = brackets.getModule("command/Menus"),
 		PanelManager = brackets.getModule("view/PanelManager"),
-		ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
+		ExtensionUtils = brackets.getModule("utils/ExtensionUtils"),
 		AppInit = brackets.getModule("utils/AppInit"),
 		NodeDomain = brackets.getModule("utils/NodeDomain"),
 		ProjectManager = brackets.getModule("project/ProjectManager");
@@ -40,25 +40,52 @@ define(function (require, exports, module) {
     }
 	
 	function getTasks() {
+		panel.$panel.find(".grunt-loader").removeClass("grunt-hide");
 		gruntDomain.exec("getTasks", ProjectManager.getProjectRoot().fullPath)
 			.done(function (tasks) {
-				//togglePanel();
 				panel.$panel.find("#tasks").html(Mustache.render(taskTemplate, {tasks: tasks}));
+				panel.$panel.find(".grunt-loader").addClass("grunt-hide");
 			}).fail(function (err) {
-				console.error("[brackets-simple-node] failed to run simple.getMemory", err);
+				console.error("[Grunt] Error getting tasks", err);
+				panel.$panel.find(".grunt-loader").addClass("grunt-hide");
 			});
 	}
+
 	
 
 	function runTask(taskName) {
-		
-		gruntDomain.exec("runTask", taskName, ProjectManager.getProjectRoot().fullPath)
+		panel.$panel.find(".grunt-runner").removeClass("grunt-hide").html("Running '" + taskName + "'");
+		gruntDomain.exec("runTask", taskName, ProjectManager.getProjectRoot().fullPath, ExtensionUtils.getModulePath(module))
+			.done(function (msg) {
+					panel.$panel.find(".grunt-runner").addClass("grunt-hide");
+					log("###<br><br>");
+			}).fail(function (err) {
+					panel.$panel.find(".grunt-runner").addClass("grunt-hide");
+					log("###<br><br>");
+			});
+	}
+	
+	function killTask() {
+		gruntDomain.exec("killTask")
 			.done(function (msg) {
 				//console.log(msg);
 			}).fail(function (err) {
 				console.error('GRUNT ERROR', err);
 			});
 	}
+	
+	function log( msg ) {
+		if(!msg) {
+			return;
+		}
+		var $console = panel.$panel.find("#grunt-console");
+		$console.append(msg.replace(/\n/g, "<br>" ));
+		
+		$console.scrollTop($console.prop("scrollHeight"));
+		
+		console.log(msg);
+	}
+	
 
 
 
@@ -67,12 +94,14 @@ define(function (require, exports, module) {
 		
 		ExtensionUtils.loadStyleSheet(module, "style/style.css");
 		
-		panel = PanelManager.createBottomPanel("grunt.panel", $(panelHtml), 100);
-		panel.$panel.on("click", ".task", function (e) {
-			
-			runTask(e.currentTarget.getAttribute("task-name"));
+		$(ProjectManager).on('beforeAppClose', function () {
+			killTask();
 		});
 		
+		panel = PanelManager.createBottomPanel("grunt.panel", $(panelHtml), 100);
+		panel.$panel.on("click", ".task", function (e) {
+			runTask(e.currentTarget.getAttribute("task-name"));
+		});
 		panel.$panel.on("click", "#refresh", function (e) {
 			getTasks();
 		});
@@ -82,7 +111,7 @@ define(function (require, exports, module) {
 		getTasks();
 		
 		$(gruntDomain).on("change", function (event, data) {
-			console.log(data.replace(/^\n|\n$/g, ""));
+			log(data);
 		});
  
     });

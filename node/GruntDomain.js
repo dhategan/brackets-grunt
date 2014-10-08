@@ -10,6 +10,8 @@
 	
 	var domain;
 	var cmd = null;
+	var isWin = /^win/.test(process.platform);
+	var isLinux  = /^linux/.test(process.platform);
 	
 	
 	
@@ -60,38 +62,79 @@
     }
 	
 	
-	function runTask(task, path, callback) {
+	// Just fooling around 
+	function runTaskDirect(task, path, callback) {
+        //reload grunt module 
+		require.uncache('grunt');
+		var grunt = require("grunt");
+        grunt.option('gruntfile', path + "Gruntfile.js");
+		grunt.option('verbose', "true");
+		grunt.task.init([]);
+        grunt.task.run(task);
+		grunt.task.start();
+    }
 	
-		var isWin = /^win/.test(process.platform);
-		var isLinux  = /^linux/.test(process.platform);
-		
-		//End an already running command
+	//End an already running command
+	function killTask() {
 		if (cmd !== null) {
 			if (!isWin) {
 				cmd.kill();
 			} else {
 				var cp = require('child_process');
 				cp.exec('taskkill /PID ' + cmd.pid + ' /T /F');
+				cmd = null;
 			}
 		}
+	}
+	
+	
+	function runTask(task, path, modulePath, callback) {
 		
+		killTask();
 		// Execute grunt command
 		var exec = require('child_process').exec;
 		process.chdir(path);
 		if (!isLinux) {
-			cmd = exec("grunt --no-color " + task);
+			//var spawn = require('child_process').spawn;
+			//cmd =  spawn(modulePath +"/node/node_modules/.bin/grunt.cmd", ['--no-color', task]);
+			
+			cmd = exec(modulePath +"/node/node_modules/.bin/grunt --no-color " + task, function(error, stdout, stderr){
+				if( callback) {
+					if (error) {
+						callback(stderr);
+					} else {
+						callback(false, stdout);
+					}
+				}
+			});
+			
+			cmd.stderr.on('data', function (data) {
+				//callback(data.toString());
+				console.log(data.toString());
+				domain.emitEvent("grunt", "change",data.toString());
+			});
+			
+			cmd.stdout.on('data', function (data) {
+				//callback(false, data.toString());
+				console.log(data.toString());
+				domain.emitEvent("grunt","change",data.toString());
+			});
+			cmd.on('error', function() { console.log(arguments); });
+
+		
 		} else {
-			cmd = exec("echo 'grunt --no-color " + task + "' | bash --login");
+			cmd = exec("echo '" + modulePath + "/node/node_modules/.bin/grunt --no-color " + task + "' | bash --login",  function(error, stdout, stderr){
+				if( callback) {
+					if (error) {
+						callback(stderr);
+					} else {
+						callback(stdout);
+					}
+				}
+			});
+			
+			
 		}
-		
-		
-		cmd.stderr.on("data", function (err) {
-			console.log(err);
-		});
-		cmd.stdout.on("data", function (data) {
-			domain.emitEvent("grunt", "change", [data]);
-		});
-	
     }
     
  
@@ -111,10 +154,18 @@
 		
 		domainManager.registerCommand(
             "grunt",
+            "killTask",
+            killTask,
+            false
+        );
+		
+		domainManager.registerCommand(
+            "grunt",
             "runTask",
             runTask,
             true
         );
+		
 		
 		domainManager.registerEvent(
 			"grunt",
