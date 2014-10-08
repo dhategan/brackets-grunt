@@ -1,0 +1,17 @@
+0.2.1
+------------------------
+
+- Ability to kill running task
+
+0.2.0
+------------------------
+
+- Console view
+- Show task running status
+- Eliminate the need for global  'grunt-cli' ( tested on Windows only )
+
+0.1.2
+------------------------
+
+- Re-style the task list
+- Change task execution from double click to single click
