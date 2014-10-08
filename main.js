@@ -54,7 +54,7 @@ define(function (require, exports, module) {
 	
 
 	function runTask(taskName) {
-		panel.$panel.find(".grunt-runner").removeClass("grunt-hide").html("Running '" + taskName + "'");
+		panel.$panel.find(".grunt-runner").removeClass("grunt-hide").html("Running '" + taskName + "' ( <div id='kill-btn' class='btn small'>kill</div> )");
 		gruntDomain.exec("runTask", taskName, ProjectManager.getProjectRoot().fullPath, ExtensionUtils.getModulePath(module))
 			.done(function (msg) {
 					panel.$panel.find(".grunt-runner").addClass("grunt-hide");
@@ -104,6 +104,10 @@ define(function (require, exports, module) {
 		});
 		panel.$panel.on("click", "#refresh", function (e) {
 			getTasks();
+		});
+		
+		panel.$panel.on("click", "#kill-btn", function (e) {
+			killTask();
 		});
 		
 		$icon.on("click", togglePanel);
