@@ -134,6 +134,20 @@
 			});
 			
 			
+			cmd.stderr.on('data', function (data) {
+				//callback(data.toString());
+				console.log(data.toString());
+				domain.emitEvent("grunt", "change",data.toString());
+			});
+			
+			cmd.stdout.on('data', function (data) {
+				//callback(false, data.toString());
+				console.log(data.toString());
+				domain.emitEvent("grunt","change",data.toString());
+			});
+			cmd.on('error', function() { console.log(arguments); });
+			
+			
 		}
     }
     
