@@ -1,3 +1,10 @@
+0.2.2 
+------------------------
+- Clear console button
+- Bold style for alias task
+- Alias task will be shown in the top of panel
+- Settings for save relative path, if grantfile.js is not locate in root of the project
+
 0.2.1
 ------------------------
 
