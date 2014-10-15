@@ -11,6 +11,7 @@ define(function (require, exports, module) {
 		ExtensionUtils = brackets.getModule("utils/ExtensionUtils"),
 		AppInit = brackets.getModule("utils/AppInit"),
 		NodeDomain = brackets.getModule("utils/NodeDomain"),
+        PreferencesManager = brackets.getModule("preferences/PreferencesManager"),
 		ProjectManager = brackets.getModule("project/ProjectManager");
 
 		
@@ -23,10 +24,11 @@ define(function (require, exports, module) {
                                     .appendTo($("#main-toolbar .buttons"));
 	
 	
-	var taskTemplate =  require("text!panel/task-list-template.html");
-	
+	var taskTemplate =  require("text!panel/task-list-template.html");	
 	var gruntDomain = new NodeDomain("grunt", ExtensionUtils.getModulePath(module, "node/GruntDomain"));
 	
+    var pathSettingName = "brackets-grunt.-path";
+    var path = "";    
 	
 	function togglePanel() {
 		
@@ -35,13 +37,13 @@ define(function (require, exports, module) {
 			$icon.removeClass("on");
         } else {
             panel.show();
-			$icon.addClass("on");
+			$icon.addClass("on");            
         }
     }
 	
 	function getTasks() {
 		panel.$panel.find(".grunt-loader").removeClass("grunt-hide");
-		gruntDomain.exec("getTasks", ProjectManager.getProjectRoot().fullPath)
+		gruntDomain.exec("getTasks", ProjectManager.getProjectRoot().fullPath + path)
 			.done(function (tasks) {
 				panel.$panel.find("#tasks").html(Mustache.render(taskTemplate, {tasks: tasks}));
 				panel.$panel.find(".grunt-loader").addClass("grunt-hide");
@@ -55,7 +57,7 @@ define(function (require, exports, module) {
 
 	function runTask(taskName) {
 		panel.$panel.find(".grunt-runner").removeClass("grunt-hide").html("Running '" + taskName + "' ( <div id='kill-btn' class='btn small'>kill</div> )");
-		gruntDomain.exec("runTask", taskName, ProjectManager.getProjectRoot().fullPath, ExtensionUtils.getModulePath(module))
+		gruntDomain.exec("runTask", taskName, ProjectManager.getProjectRoot().fullPath + path, ExtensionUtils.getModulePath(module))
 			.done(function (msg) {
 					panel.$panel.find(".grunt-runner").addClass("grunt-hide");
 					log("###<br><br>");
@@ -86,25 +88,45 @@ define(function (require, exports, module) {
 		console.log(msg);
 	}
 	
+    function loadPathSettings(projectName)
+    {
+        pathSettingName = "brackets-grunt." + projectName + "-path";
+        path = (PreferencesManager.get(pathSettingName) || "");
+        panel.$panel.find("#path").val(path);
+    }
 
 
 
-	AppInit.appReady(function () {
+	AppInit.appReady(function () {	
 		
-		
-		ExtensionUtils.loadStyleSheet(module, "style/style.css");
-		
+        
+		ExtensionUtils.loadStyleSheet(module, "style/style.css");       
+        		
 		$(ProjectManager).on('beforeAppClose', function () {
 			killTask();
-		});
+		});        
+        
+        $(ProjectManager).on("projectOpen", function (e, projectRoot) { loadPathSettings(projectRoot.name); });
 		
 		panel = PanelManager.createBottomPanel("grunt.panel", $(panelHtml), 100);
+        
+        loadPathSettings(ProjectManager.getProjectRoot().name);
+        
 		panel.$panel.on("click", ".task", function (e) {
 			runTask(e.currentTarget.getAttribute("task-name"));
-		});
-		panel.$panel.on("click", "#refresh", function (e) {
+		});   
+        
+		panel.$panel.on("click", "#refresh", function () 
+        {
+            path = panel.$panel.find("#path").val();
+            if (pathSettingName && path)
+            {
+                PreferencesManager.set(pathSettingName, path);
+            }
 			getTasks();
 		});
+        panel.$panel.on("click", "#clear-console", function () { panel.$panel.find("#grunt-console").empty(); });
+        panel.$panel.on("click", "#close", function () { togglePanel(); });
 		
 		panel.$panel.on("click", "#kill-btn", function (e) {
 			killTask();

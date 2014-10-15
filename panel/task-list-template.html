@@ -1,8 +1,8 @@
 
 	<table class="task-table table table-striped table-condensed row-highlight">
 	{{#tasks}}
-		<tr class="task" task-name="{{.}}">
-			<td>{{.}}</td>
+		<tr class="task" task-name="{{name}}">
+			<td class="{{#isAlias}}task-alias{{/isAlias}}">{{name}}</td>
 		</tr>
 	{{/tasks}}
 	</table>

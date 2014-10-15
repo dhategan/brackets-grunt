@@ -56,9 +56,31 @@
 		grunt.option('gruntfile', path + "Gruntfile.js");
 		grunt.task.init([]);
 		
-	
-		var  _tasks = Object.keys(grunt.task._tasks).sort();
-		return _tasks;
+        var tasks = [];
+        for (var key in grunt.task._tasks) 
+        {
+            var task = {};
+            task.name = key;
+            task.isAlias = (grunt.task._tasks[key].info && grunt.task._tasks[key].info.indexOf("Alias for ") > -1);
+            
+            tasks.push(task);
+        }
+
+		return tasks.sort(function(a, b)
+            {
+                if((a.isAlias && b.isAlias) || (!a.isAlias && !b.isAlias)) 
+                {
+                    return a.name === b.name ? 0 : (a.name < b.name ? -1 : 1);
+                } 
+                else if(a.isAlias) 
+                {
+                    return -1;
+                } 
+                else 
+                {
+                    return 1;
+                }
+           });
     }
 	
 	

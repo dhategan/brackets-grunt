@@ -54,3 +54,13 @@
 {
 		
 }
+
+.task-alias { font-weight: 800; }
+.path
+{
+    position: absolute;
+    right: 30px;
+    top: 36%;
+    margin-top: -10px;
+    width: 250px;
+}
