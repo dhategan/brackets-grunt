@@ -13,5 +13,14 @@
   ],
   "engines": {
     "brackets": ">=0.32.0"
-  }
+  },
+    "repository": 
+    {
+        "type": "git",
+        "url": "https://github.com/dhategan/brackets-grunt"
+    },
+    "bugs": 
+    {
+        "url": "https://github.com/dhategan/brackets-grunt/issues"
+    }
 }
