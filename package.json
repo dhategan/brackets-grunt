@@ -1,10 +1,13 @@
 {
   "name": "brackets-grunt",
   "title": "Grunt for Brackets",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Lists and runs Grunt tasks inside Brackets",
   "homepage": "https://github.com/dhategan/brackets-grunt",
-  "author": "Dragos Hategan <neuromaster@gmail.com> (https://github.com/dhategan)",
+  "author": "Dragos Hategan (https://github.com/dhategan)",
+  "contributors": [
+        "Dis Shishkov (https://github.com/disshishkov)"
+  ],
   "license": "MIT",
   "categories": "general",
   "keywords": [
