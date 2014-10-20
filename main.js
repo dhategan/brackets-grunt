@@ -34,10 +34,8 @@ define(function (require, exports, module) {
 		
         if (panel.isVisible()) {
             panel.hide();
-			$icon.removeClass("on");
         } else {
             panel.show();
-			$icon.addClass("on");            
         }
     }
 	
@@ -57,12 +55,14 @@ define(function (require, exports, module) {
 
 	function runTask(taskName) {
 		panel.$panel.find(".grunt-runner").removeClass("grunt-hide").html("Running '" + taskName + "' ( <div id='kill-btn' class='btn small'>kill</div> )");
+		$icon.addClass("on");            
 		gruntDomain.exec("runTask", taskName, ProjectManager.getProjectRoot().fullPath + path, ExtensionUtils.getModulePath(module))
 			.done(function (msg) {
 					panel.$panel.find(".grunt-runner").addClass("grunt-hide");
 					log("###<br><br>");
 			}).fail(function (err) {
 					panel.$panel.find(".grunt-runner").addClass("grunt-hide");
+					$icon.removeClass("on");
 					log("###<br><br>");
 			});
 	}
@@ -70,6 +70,7 @@ define(function (require, exports, module) {
 	function killTask() {
 		gruntDomain.exec("killTask")
 			.done(function (msg) {
+				$icon.removeClass("on");
 				//console.log(msg);
 			}).fail(function (err) {
 				console.error('GRUNT ERROR', err);

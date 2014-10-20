@@ -1,9 +1,20 @@
+0.2.4
+------------------------
+
+- Fixed and simplified tasks and console panel sizes
+
+0.2.3
+------------------------
+
+- Turn Grunt icon "on" when a task is running, so you can close the panel and know that it's still running
+
 0.2.2 
 ------------------------
+
 - Clear console button
 - Bold style for alias task
 - Alias task will be shown in the top of panel
-- Settings for save relative path, if grantfile.js is not locate in root of the project
+- Settings for save relative path, if gruntfile.js is not locate in root of the project
 
 0.2.1
 ------------------------
