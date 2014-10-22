@@ -1,7 +1,7 @@
 {
   "name": "brackets-grunt",
   "title": "Grunt for Brackets",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Lists and runs Grunt tasks inside Brackets",
   "homepage": "https://github.com/dhategan/brackets-grunt",
   "author": "Dragos Hategan (https://github.com/dhategan)",

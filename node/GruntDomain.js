@@ -7,6 +7,7 @@
     
     var os = require("os");
 	var path = require('path');
+	var fs = require('fs');
 	
 	var domain;
 	var cmd = null;
@@ -14,14 +15,14 @@
 	var isLinux  = /^linux/.test(process.platform);
 	
 	
-	
+	//Used to uncache loaded grunt files 
 	require.uncache = function (moduleName) {
 		// Run over the cache looking for the files
 		// loaded by the specified module name
 		require.searchCache(moduleName, function (mod) {
 			delete require.cache[mod.id];
 		});
-	}
+	};
 
 
 	require.searchCache = function (moduleName, callback) {
@@ -44,47 +45,48 @@
 				callback(mod);
 			})(mod);
 		}
-	}
+	};
 
         
-    function getTasks(path) {
+    function getTasks(gruntfilePath) {
+		
+        var key;
+		
+		if (!fs.existsSync(gruntfilePath + "Gruntfile.js")) {
+			domain.emitEvent("grunt", "change", 'No gruntfile found at: "' + gruntfilePath + '"<br>');
+			return;
+		}
 		
 		//reload grunt module 
 		require.uncache('grunt');
 		var grunt = require("grunt");
 		
-		grunt.option('gruntfile', path + "Gruntfile.js");
+		grunt.option('gruntfile', gruntfilePath + "Gruntfile.js");
 		grunt.task.init([]);
 		
         var tasks = [];
-        for (var key in grunt.task._tasks) 
-        {
+        for (key in grunt.task._tasks) {
             var task = {};
             task.name = key;
             task.isAlias = (grunt.task._tasks[key].info && grunt.task._tasks[key].info.indexOf("Alias for ") > -1);
+			task.isDefault = (key === "default");
             
             tasks.push(task);
         }
 
-		return tasks.sort(function(a, b)
-            {
-                if((a.isAlias && b.isAlias) || (!a.isAlias && !b.isAlias)) 
-                {
-                    return a.name === b.name ? 0 : (a.name < b.name ? -1 : 1);
-                } 
-                else if(a.isAlias) 
-                {
-                    return -1;
-                } 
-                else 
-                {
-                    return 1;
-                }
-           });
+		return tasks.sort(function (a, b) {
+            if ((a.isAlias && b.isAlias) || (!a.isAlias && !b.isAlias)) {
+                return a.name === b.name ? 0 : (a.name < b.name ? -1 : 1);
+            } else if (a.isAlias) {
+                return -1;
+            } else {
+                return 1;
+            }
+        });
     }
 	
 	
-	// Just fooling around 
+	// Just fooling around (not used)
 	function runTaskDirect(task, path, callback) {
         //reload grunt module 
 		require.uncache('grunt');
@@ -98,21 +100,30 @@
 	
 	//End an already running command
 	function killTask() {
+		
 		if (cmd !== null) {
+			cmd.removeAllListeners();
 			if (!isWin) {
 				cmd.kill();
 			} else {
 				var cp = require('child_process');
 				cp.exec('taskkill /PID ' + cmd.pid + ' /T /F');
+				
 				cmd = null;
 			}
+			
+			return true;
 		}
+		
+		return false;
 	}
 	
 	
 	function runTask(task, path, modulePath, callback) {
 		
 		killTask();
+		
+		task = task || "";
 		// Execute grunt command
 		var exec = require('child_process').exec;
 		process.chdir(path);
@@ -120,8 +131,8 @@
 			//var spawn = require('child_process').spawn;
 			//cmd =  spawn(modulePath +"/node/node_modules/.bin/grunt.cmd", ['--no-color', task]);
 			
-			cmd = exec(modulePath +"/node/node_modules/.bin/grunt --no-color " + task, function(error, stdout, stderr){
-				if( callback) {
+			cmd = exec(modulePath + "/node/node_modules/.bin/grunt --no-color " + task, function (error, stdout, stderr) {
+				if (callback) {
 					if (error) {
 						callback(stderr);
 					} else {
@@ -131,22 +142,18 @@
 			});
 			
 			cmd.stderr.on('data', function (data) {
-				//callback(data.toString());
-				console.log(data.toString());
-				domain.emitEvent("grunt", "change",data.toString());
+				domain.emitEvent("grunt", "change", data.toString());
 			});
 			
 			cmd.stdout.on('data', function (data) {
-				//callback(false, data.toString());
-				console.log(data.toString());
-				domain.emitEvent("grunt","change",data.toString());
+				domain.emitEvent("grunt", "change", data.toString());
 			});
-			cmd.on('error', function() { console.log(arguments); });
+			cmd.on('error', function () { console.log(arguments); });
 
 		
 		} else {
-			cmd = exec("echo '" + modulePath + "/node/node_modules/.bin/grunt --no-color " + task + "' | bash --login",  function(error, stdout, stderr){
-				if( callback) {
+			cmd = exec("echo '" + modulePath + "/node/node_modules/.bin/grunt --no-color " + task + "' | bash --login",  function (error, stdout, stderr) {
+				if (callback) {
 					if (error) {
 						callback(stderr);
 					} else {
@@ -157,19 +164,16 @@
 			
 			
 			cmd.stderr.on('data', function (data) {
-				//callback(data.toString());
 				console.log(data.toString());
-				domain.emitEvent("grunt", "change",data.toString());
+				domain.emitEvent("grunt", "change", data.toString());
 			});
 			
 			cmd.stdout.on('data', function (data) {
-				//callback(false, data.toString());
 				console.log(data.toString());
-				domain.emitEvent("grunt","change",data.toString());
+				domain.emitEvent("grunt", "change", data.toString());
 			});
-			cmd.on('error', function() { console.log(arguments); });
 			
-			
+			cmd.on('error', function () {console.log(arguments); });
 		}
     }
     
@@ -202,13 +206,11 @@
             true
         );
 		
-		
 		domainManager.registerEvent(
 			"grunt",
 			"change",
 			[
 				{name: "data", type: "object"}
-			
 			]
 		);
     }

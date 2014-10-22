@@ -43,14 +43,17 @@
 }
 
 
-.grunt-hide 
-{
-	display: none;
-}
+
 
 .grunt-message
 {
 	margin-left: 5px;
+	display: inline-block;
+}
+
+.grunt-hide 
+{
+	display: none;
 }
 
 .grunt-console
