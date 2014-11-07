@@ -47,12 +47,13 @@
 		}
 	};
 
-        
     function getTasks(gruntfilePath) {
 		
         var key;
 		
-		if (!fs.existsSync(gruntfilePath + "Gruntfile.js")) {
+		gruntfilePath = path.join(path.normalize(gruntfilePath), "Gruntfile.js");
+		
+		if (!fs.existsSync(gruntfilePath)) {
 			domain.emitEvent("grunt", "change", 'No gruntfile found at: "' + gruntfilePath + '"<br>');
 			return;
 		}
@@ -61,7 +62,7 @@
 		require.uncache('grunt');
 		var grunt = require("grunt");
 		
-		grunt.option('gruntfile', gruntfilePath + "Gruntfile.js");
+		grunt.option('gruntfile', gruntfilePath);
 		grunt.task.init([]);
 		
         var tasks = [];
@@ -119,14 +120,16 @@
 	}
 	
 	
-	function runTask(task, path, modulePath, callback) {
+	function runTask(task, execPath, modulePath, callback) {
 		
 		killTask();
+		
+		execPath = path.normalize(execPath);
 		
 		task = task || "";
 		// Execute grunt command
 		var exec = require('child_process').exec;
-		process.chdir(path);
+		process.chdir(execPath);
 		if (!isLinux) {
 			//var spawn = require('child_process').spawn;
 			//cmd =  spawn(modulePath +"/node/node_modules/.bin/grunt.cmd", ['--no-color', task]);

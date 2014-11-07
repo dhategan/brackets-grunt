@@ -13,12 +13,13 @@ define(function (require, exports, module) {
 		AppInit = brackets.getModule("utils/AppInit"),
 		NodeDomain = brackets.getModule("utils/NodeDomain"),
         PreferencesManager = brackets.getModule("preferences/PreferencesManager"),
-		ProjectManager = brackets.getModule("project/ProjectManager");
-
-		
-	
+		ProjectManager = brackets.getModule("project/ProjectManager"),
+		DocumentManager = brackets.getModule("document/DocumentManager"),
+		StringUtils = brackets.getModule("utils/StringUtils"),
+		Dialogs = brackets.getModule("widgets/Dialogs");
 	
 	var panelHtml = require("text!panel/panel.html");
+	var prefDialogHtml = require("text!panel/preferences.html");
 	var panel;
 	var $icon = $("<a id='grunt-toolbar-icon' href='#'> </a>")
 			.attr("title", "Grunt")
@@ -26,8 +27,11 @@ define(function (require, exports, module) {
 	var $console;
 	var taskTemplate =  require("text!panel/task-list-template.html");
 	var gruntDomain = new NodeDomain("grunt", ExtensionUtils.getModulePath(module, "node/GruntDomain"));
+	var preferencePrefix = "brackets-grunt.";
     var pathSettingName = "brackets-grunt.-path";
     var path = "";
+	var onsaveSettingName = "brackets-grunt.-onsaveTask";
+	var onsaveTask = "";
 	var RUN_DEFAULT_ID = "brackets-grunt.rundefault";
 	
 	
@@ -124,14 +128,52 @@ define(function (require, exports, module) {
 	}
 	
 	
-    function loadPathSettings(projectName) {
+    function loadProjectSettings(projectName) {
         pathSettingName = "brackets-grunt." + projectName + "-path";
         path = (PreferencesManager.get(pathSettingName) || "");
         panel.$panel.find("#path").val(path);
+		
+		onsaveSettingName = "brackets-grunt." + projectName + "-onsaveTask";
+		onsaveTask = (PreferencesManager.get(onsaveSettingName) || "");
     }
 	
+	function showOptions() {
 	
+		var options = {
+			'Strings' : {
+				'title' : StringUtils.format('Grunt options for: {0}', ProjectManager.getProjectRoot().name),
+				'path' : 'Path to gruntfile (relative to project)',
+				'onsaveTask' : 'Task to execute on save (optional)'
+			},
+			'Preferences' : {
+				'path' : (PreferencesManager.get(pathSettingName) || ""),
+				'onsaveTask' : (PreferencesManager.get(onsaveSettingName) || "")
+			}
+		};
+		var dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(prefDialogHtml, options));
+		dialog.done(function(buttonID) {
+			if (buttonID == "ok") {
+				{
+				var prefInputs = dialog.getElement().find(".pref-input");
+				
+				var projectName = ProjectManager.getProjectRoot().name;
+				var prefPrefix = preferencePrefix + projectName + "-";
+				
+				prefInputs.each(function() {
+					var $this = $(this);
+					var prefName = $this.attr("name");
+					var val = $this.val();
+					
+					if (prefName)
+						PreferencesManager.set(prefPrefix + prefName, val || "");
+				});
 
+				loadProjectSettings(projectName);
+				getTasks();
+				}
+			}
+		});
+	}
 
 	AppInit.appReady(function () {
 		
@@ -139,7 +181,7 @@ define(function (require, exports, module) {
 		panel = PanelManager.createBottomPanel("grunt.panel", $(panelHtml), 100);
 		$console = panel.$panel.find("#grunt-console");
         
-        loadPathSettings(ProjectManager.getProjectRoot().name);
+        loadProjectSettings(ProjectManager.getProjectRoot().name);
         
 		// Panel Event Handlers 
 		panel.$panel.on("click", ".task", function (e) {
@@ -157,6 +199,7 @@ define(function (require, exports, module) {
 		panel.$panel.on("click", "#kill-btn", function (e) {
 			killTask();
 		});
+		panel.$panel.on("click", "#show-options", function() { showOptions(); });
 		
 		$icon.on("click", togglePanel);
 		
@@ -184,8 +227,13 @@ define(function (require, exports, module) {
 		});
 
 		$(ProjectManager).on("projectOpen", function (e, projectRoot) {
-			loadPathSettings(projectRoot.name);
+			loadProjectSettings(projectRoot.name);
 			getTasks();
+		});
+		
+		$(DocumentManager).on("documentSaved", function(e, doc) {
+			if (onsaveTask)
+				runTask(onsaveTask);
 		});
 		
 		//Load tasks
