@@ -70,3 +70,19 @@
     margin-top: -10px;
     width: 250px;
 }
+
+#grunt-preferences-dialog .field-container label
+	{
+	line-height: 28px;
+	}
+	
+#grunt-preferences-dialog .field-container span
+	{
+	display: inline-block;
+	width: 220px;
+	}
+	
+#grunt-preferences-dialog .field-container input
+	{
+	margin: 0;
+	}
