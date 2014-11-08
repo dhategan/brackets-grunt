@@ -127,7 +127,7 @@
 		// Execute grunt command
 		var exec = require('child_process').exec;
 		process.chdir(path);
-		if (!isLinux) {
+		if (isWin) {
 			//var spawn = require('child_process').spawn;
 			//cmd =  spawn(modulePath +"/node/node_modules/.bin/grunt.cmd", ['--no-color', task]);
 			
@@ -152,7 +152,16 @@
 
 		
 		} else {
-			cmd = exec("echo '" + modulePath + "/node/node_modules/.bin/grunt --no-color " + task + "' | bash --login",  function (error, stdout, stderr) {
+		
+			//Handle permission denied error on MAC
+            var stat = fs.statSync(modulePath + "/node/node_modules/.bin/grunt");
+             
+            if(parseInt(stat.mode.toString(8), 10).toString().search('555$') === -1) {
+               fs.chmodSync( modulePath + "/node/node_modules/.bin/grunt", '555');
+            }
+			
+			// Execute command 
+			cmd = exec("echo '\"" + modulePath + "/node/node_modules/.bin/grunt\" --no-color " + task + "' | bash --login",  function (error, stdout, stderr) {
 				if (callback) {
 					if (error) {
 						callback(stderr);
