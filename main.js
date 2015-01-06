@@ -7,13 +7,14 @@ define(function (require, exports, module) {
 
     var CommandManager = brackets.getModule("command/CommandManager"),
 		KeyBindingManager = brackets.getModule("command/KeyBindingManager"),
-        Menus          = brackets.getModule("command/Menus"),
+        	Menus = brackets.getModule("command/Menus"),
 		PanelManager = brackets.getModule("view/PanelManager"),
 		ExtensionUtils = brackets.getModule("utils/ExtensionUtils"),
 		AppInit = brackets.getModule("utils/AppInit"),
 		NodeDomain = brackets.getModule("utils/NodeDomain"),
-        PreferencesManager = brackets.getModule("preferences/PreferencesManager"),
-		ProjectManager = brackets.getModule("project/ProjectManager");
+        	PreferencesManager = brackets.getModule("preferences/PreferencesManager"),
+		ProjectManager = brackets.getModule("project/ProjectManager"), 
+		WorkspaceManager = brackets.getModule('view/WorkspaceManager'); 
 
 		
 	
@@ -136,7 +137,7 @@ define(function (require, exports, module) {
 	AppInit.appReady(function () {
 		
 		ExtensionUtils.loadStyleSheet(module, "style/style.css");
-		panel = PanelManager.createBottomPanel("grunt.panel", $(panelHtml), 100);
+		panel = WorkspaceManager.createBottomPanel("grunt.panel", $(panelHtml), 100); 
 		$console = panel.$panel.find("#grunt-console");
         
         loadPathSettings(ProjectManager.getProjectRoot().name);
