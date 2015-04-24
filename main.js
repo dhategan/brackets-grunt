@@ -148,7 +148,7 @@ define(function (require, exports, module) {
 		});
 		panel.$panel.on("click", "#refresh", function () {
             path = panel.$panel.find("#path").val();
-            if (pathSettingName && path) {
+            if (pathSettingName && (path || path === '')){
                 PreferencesManager.set(pathSettingName, path);
             }
 			getTasks();
