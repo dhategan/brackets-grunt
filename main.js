@@ -16,9 +16,9 @@ define(function (require, exports, module) {
 		ProjectManager = brackets.getModule("project/ProjectManager"), 
 		WorkspaceManager = brackets.getModule('view/WorkspaceManager'); 
 
-		
-	
-	
+
+
+
 	var panelHtml = require("text!panel/panel.html");
 	var panel;
 	var $icon = $("<a id='grunt-toolbar-icon' href='#'> </a>")
@@ -30,19 +30,21 @@ define(function (require, exports, module) {
     var pathSettingName = "brackets-grunt.-path";
     var path = "";
 	var RUN_DEFAULT_ID = "brackets-grunt.rundefault";
-	
-	
-		
+	var failPattern = /.*Warning: Task "[^"]+" failed.*/;
+	var successPattern = /.*Done, without errors.*/;
+	var runningPattern = /.*Running.*/;
+
+
 	function getKeyBinding(id) {
 		var bindings = KeyBindingManager.getKeyBindings(id);
-		
+
 		if (bindings.length > 0) {
 			return bindings[0].key;
 		}
-		
+
 		return "";
 	}
-	
+
 	function togglePanel() {
         if (panel.isVisible()) {
             panel.hide();
@@ -50,11 +52,11 @@ define(function (require, exports, module) {
             panel.show();
         }
     }
-    
+
     function clearConsole() {
 		panel.$panel.find("#grunt-console").empty();
 	}
-    
+
     function log(msg) {
 		if (!msg) {
 			return;
@@ -65,14 +67,14 @@ define(function (require, exports, module) {
 	}
 
 	function getTasks() {
-			
+
 		var key = getKeyBinding(RUN_DEFAULT_ID);
-		
+
 		panel.$panel.find(".grunt-loader").removeClass("grunt-hide");
 		$icon.addClass("on");
-		
+
 		log("Loading tasks from file<br>");
-		
+
 		gruntDomain.exec("getTasks", ProjectManager.getProjectRoot().fullPath + path)
 			.done(function (tasks) {
 				panel.$panel.find("#tasks").html(Mustache.render(taskTemplate, {tasks: tasks, defaultkey: key}));
@@ -89,13 +91,13 @@ define(function (require, exports, module) {
 			});
 	}
 
-	
+
 
 	function runTask(taskName) {
-		
+
 		panel.$panel.find(".grunt-runner").removeClass("grunt-hide").html("Running '" + (taskName || 'default') + "' ( <div id='kill-btn' class='btn small'>kill</div> )");
 		$icon.addClass("on");
-        
+
 		gruntDomain.exec("runTask", taskName, ProjectManager.getProjectRoot().fullPath + path, ExtensionUtils.getModulePath(module))
 			.done(function (msg) {
                 panel.$panel.find(".grunt-runner").addClass("grunt-hide");
@@ -107,7 +109,7 @@ define(function (require, exports, module) {
                 log("###<br><br>");
 			});
 	}
-	
+
 	function killTask(clear) {
 		gruntDomain.exec("killTask")
 			.done(function (msg) {
@@ -123,26 +125,26 @@ define(function (require, exports, module) {
 				log("Error killing task: " + err);
 			});
 	}
-	
-	
+
+
     function loadPathSettings(projectName) {
         pathSettingName = "brackets-grunt." + projectName + "-path";
         path = (PreferencesManager.get(pathSettingName) || "");
         panel.$panel.find("#path").val(path);
     }
-	
-	
+
+
 
 
 	AppInit.appReady(function () {
-		
+
 		ExtensionUtils.loadStyleSheet(module, "style/style.css");
 		panel = WorkspaceManager.createBottomPanel("grunt.panel", $(panelHtml), 100); 
 		$console = panel.$panel.find("#grunt-console");
-        
+
         loadPathSettings(ProjectManager.getProjectRoot().name);
-        
-		// Panel Event Handlers 
+
+		// Panel Event Handlers
 		panel.$panel.on("click", ".task", function (e) {
 			runTask(e.currentTarget.getAttribute("task-name"));
 		});
@@ -158,27 +160,38 @@ define(function (require, exports, module) {
 		panel.$panel.on("click", "#kill-btn", function (e) {
 			killTask();
 		});
-		
+
 		$icon.on("click", togglePanel);
-		
+
 		//run-default-task key shortcut
 		CommandManager.register("Run Default", RUN_DEFAULT_ID, runTask);
-		//Don't bind if it the shortcut is already taken 
+		//Don't bind if it the shortcut is already taken
 		//TODO: Ask the user for another shortcut
 		if (!KeyBindingManager.getKeymap()["Ctrl-Alt-D"]) {
 			KeyBindingManager.addBinding(RUN_DEFAULT_ID, {"key": "Ctrl-Alt-D"});
 		}
-		 
-		//Handle messages from Node domain 
+
+		//Handle messages from Node domain
 		$(gruntDomain).on("change", function (event, data) {
 			log(data);
+			if(data.match(runningPattern)){
+				$icon.removeClass("success");
+				$icon.removeClass("fail");
+			}else if(data.match(failPattern)){
+				$icon.removeClass("success");
+				$icon.addClass("fail");
+			}else if(data.match(successPattern)){
+				$icon.removeClass("fail");
+				$icon.addClass("success");
+			}
 		});
-		
-		//Kill running task when Brackets is closed 
+
+
+		//Kill running task when Brackets is closed
 		$(ProjectManager).on('beforeAppClose', function () {
             killTask();
 		});
-		
+
 		//Kill running task when project is changed
 		$(ProjectManager).on('beforeProjectClose', function () {
 			killTask(true);
@@ -188,9 +201,9 @@ define(function (require, exports, module) {
 			loadPathSettings(projectRoot.name);
 			getTasks();
 		});
-		
+
 		//Load tasks
 		getTasks();
- 
+
     });
 });

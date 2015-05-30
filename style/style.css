@@ -7,6 +7,14 @@
    background: url("../assets/grunt-on.png") no-repeat 0 0;
 }
 
+#grunt-toolbar-icon.on.success {
+   background: url("../assets/grunt-success.png") no-repeat 0 0;
+}
+
+#grunt-toolbar-icon.on.fail {
+   background: url("../assets/grunt-fail.png") no-repeat 0 0;
+}
+
 .task-list
 {
 	height: calc(100% - 37px);
@@ -51,14 +59,14 @@
 	display: inline-block;
 }
 
-.grunt-hide 
+.grunt-hide
 {
 	display: none;
 }
 
 .grunt-console
 {
-		
+
 }
 
 .task-alias { font-weight: 800; }
