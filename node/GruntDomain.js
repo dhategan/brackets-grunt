@@ -14,6 +14,12 @@
 	var isWin = /^win/.test(process.platform);
 	var isLinux  = /^linux/.test(process.platform);
 
+    var gruntfileNames = [
+        "Gruntfile.js",
+        "gruntfile.js",
+        "Gruntfile.coffee",
+        "gruntfile.coffee"
+    ];
 
 	//Used to uncache loaded grunt files
 	require.uncache = function (moduleName) {
@@ -47,20 +53,33 @@
 		}
 	};
 
+    function getGruntfilePath(baseDirPath) {
+        var path = null;
 
-    function getGruntfilePath(gruntfilePath) {
-        if (fs.existsSync(gruntfilePath + "Gruntfile.js")) {
-            return gruntfilePath + "Gruntfile.js";
-        } else if (fs.existsSync(gruntfilePath + "Gruntfile.coffee")) {
-            return gruntfilePath + "Gruntfile.coffee";
-        }
+        gruntfileNames.forEach(function (name) {
+            var fullPath = baseDirPath + name;
+
+            if (fs.existsSync(fullPath)) {
+                path = fullPath;
+
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        return path;
+    }
+
+    function existsGruntfile(path) {
+        return (getGruntfilePath(path) !== null);
     }
 
     function getTasks(gruntfilePath) {
 
         var key;
 
-		if ((!fs.existsSync(gruntfilePath + "Gruntfile.js")) && (!fs.existsSync(gruntfilePath + "Gruntfile.coffee"))) {
+		if (!existsGruntfile(gruntfilePath)) {
 			domain.emitEvent("grunt", "change", 'No gruntfile found at: "' + gruntfilePath + '"<br>');
 			return;
 		}
