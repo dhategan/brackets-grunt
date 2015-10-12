@@ -139,7 +139,7 @@
 			//var spawn = require('child_process').spawn;
 			//cmd =  spawn(modulePath +"/node/node_modules/.bin/grunt.cmd", ['--no-color', task]);
 
-			cmd = exec(modulePath + "/node/node_modules/.bin/grunt --no-color " + task, function (error, stdout, stderr) {
+			cmd = exec("\"" + modulePath + "/node/node_modules/.bin/grunt\" --no-color " + task, function (error, stdout, stderr) {
 				if (callback) {
 					if (error) {
 						callback(stderr);
