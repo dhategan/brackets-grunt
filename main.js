@@ -73,7 +73,7 @@ define(function (require, exports, module) {
 		
 		log("Loading tasks from file<br>");
 		
-		gruntDomain.exec("getTasks", ProjectManager.getProjectRoot().fullPath + path)
+		gruntDomain.exec("getTasks", escape(ProjectManager.getProjectRoot().fullPath + path))
 			.done(function (tasks) {
 				panel.$panel.find("#tasks").html(Mustache.render(taskTemplate, {tasks: tasks, defaultkey: key}));
 				panel.$panel.find(".grunt-loader").addClass("grunt-hide");
@@ -96,7 +96,7 @@ define(function (require, exports, module) {
 		panel.$panel.find(".grunt-runner").removeClass("grunt-hide").html("Running '" + (taskName || 'default') + "' ( <div id='kill-btn' class='btn small'>kill</div> )");
 		$icon.addClass("on");
         
-		gruntDomain.exec("runTask", taskName, ProjectManager.getProjectRoot().fullPath + path, ExtensionUtils.getModulePath(module))
+		gruntDomain.exec("runTask", taskName, escape(ProjectManager.getProjectRoot().fullPath + path), ExtensionUtils.getModulePath(module))
 			.done(function (msg) {
                 panel.$panel.find(".grunt-runner").addClass("grunt-hide");
                 $icon.removeClass("on");
