@@ -7,7 +7,7 @@ define(function (require, exports, module) {
     var CommandManager = brackets.getModule("command/CommandManager"),
         KeyBindingManager = brackets.getModule("command/KeyBindingManager"),
         Menus = brackets.getModule("command/Menus"),
-        PanelManager = brackets.getModule("view/PanelManager"),
+        PanelManager = brackets.getModule("view/WorkspaceManager"),
         ExtensionUtils = brackets.getModule("utils/ExtensionUtils"),
         AppInit = brackets.getModule("utils/AppInit"),
         NodeDomain = brackets.getModule("utils/NodeDomain"),
